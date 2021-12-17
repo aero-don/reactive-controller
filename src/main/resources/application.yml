@@ -1,0 +1,8 @@
+micronaut:
+  application:
+    name: reactiveController
+  server:
+    port: 8080
+  http:
+    client:
+      read-idle-timeout: 5s
