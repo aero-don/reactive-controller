@@ -38,7 +38,6 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test:3.4.13")
 
     implementation(files("libs/netty-handler-4.1.73.Final-SNAPSHOT.jar"))
-
     // implementation(files("libs/http-client-3.2.4-SNAPSHOT.jar"))
 }
 

@@ -1,6 +1,7 @@
 package com.example
 
 import io.micronaut.context.ApplicationContext
+import io.micronaut.http.client.exceptions.ReadTimeoutException
 import io.micronaut.inject.qualifiers.Qualifiers
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.scheduling.TaskExecutors
@@ -18,8 +19,8 @@ import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledFuture
 
-class ReactiveControllerSpec extends Specification {
-    private static final Logger LOG = LoggerFactory.getLogger(ReactiveControllerSpec.class)
+class ReactiveControllerTimeoutSpec extends Specification {
+    private static final Logger LOG = LoggerFactory.getLogger(ReactiveControllerTimeoutSpec.class)
 
     @Shared
     @AutoCleanup
@@ -37,23 +38,41 @@ class ReactiveControllerSpec extends Specification {
     @Shared
     PublisherService publisherService = context.getBean(PublisherService)
 
-    void 'test it works'() {
-        expect:
-        embeddedServer.running
+    void 'test reactive read timeout when no data is received'() {
+        when:
+        ReactiveClient reactiveClient = context.createBean(ReactiveClient)
+        Flux<StringDTO> stringSource = reactiveClient.strings
+        stringSource
+                .subscribeOn(Schedulers.fromExecutorService(executorService))
+                .doOnNext(stringDTO -> LOG.info("eceived ${stringDTO}"))
+                .doOnComplete(() -> LOG.warn("Received onComplete"))
+                .doOnError(throwable -> LOG.error("Error ${throwable.message}"))
+                .onBackpressureLatest()
+                .subscribe()
+
+        then:
+        StepVerifier
+                .create(stringSource)
+                .expectError(ReadTimeoutException)
+                .verify()
+
+        cleanup:
+        publisherService.publishComplete()
+        Thread.sleep(1000)
     }
 
-    void 'test reactive read'() {
+    void 'test reactive read timeout when some data is received'() {
         setup:
         // Start publisher job
-        ScheduledFuture<PublisherJob> publisherJobFuture = (ScheduledFuture<PublisherJob>) taskScheduler.scheduleAtFixedRate(
+        ScheduledFuture<PublisherTimeoutJob> publisherTimeoutJobFuture = (ScheduledFuture<PublisherTimeoutJob>) taskScheduler.scheduleAtFixedRate(
                 Duration.ofMillis(1000L),
                 Duration.ofMillis(2000L),
-                new PublisherJob(publisherService))
+                new PublisherTimeoutJob(publisherService));
 
-        if (publisherJobFuture != null) {
-            LOG.info("started PublisherJob");
+        if (publisherTimeoutJobFuture != null) {
+            LOG.info("started PublisherTimeoutJob")
         } else {
-            LOG.error("publisherJobFuture is null")
+            LOG.error("publisherTimeoutJobFuture is null")
         }
 
         when:
@@ -61,7 +80,7 @@ class ReactiveControllerSpec extends Specification {
         Flux<StringDTO> stringSource = reactiveClient.strings
         stringSource
                 .subscribeOn(Schedulers.fromExecutorService(executorService))
-                .doOnNext(stringDTO -> LOG.info("Received ${stringDTO}", stringDTO))
+                .doOnNext(stringDTO -> LOG.info("Received ${stringDTO}"))
                 .doOnComplete(() -> LOG.warn("Received onComplete"))
                 .doOnError(throwable -> LOG.error("Error ${throwable.message}"))
                 .onBackpressureLatest()

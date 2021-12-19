@@ -11,6 +11,7 @@
     </appender>
 
     <logger name="io.netty.handler.timeout" level="debug" />
+    <logger name="io.micronaut.http.client.netty" level="debug" />
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

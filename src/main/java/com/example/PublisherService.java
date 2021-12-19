@@ -12,11 +12,11 @@ import reactor.util.concurrent.Queues;
 @Singleton
 public class PublisherService {
     private static final Logger LOG = LoggerFactory.getLogger(PublisherService.class);
-    private final Sinks.Many<StringDTO> stringSink = Sinks.many().multicast().onBackpressureBuffer(Queues.XS_BUFFER_SIZE, false);
-    private final Flux<StringDTO> stringFlux = stringSink.asFlux();
+    private Sinks.Many<StringDTO> stringSink = Sinks.many().multicast().onBackpressureBuffer(Queues.XS_BUFFER_SIZE, false);
+    private Flux<StringDTO> stringFlux = stringSink.asFlux();
 
     public final Flux<StringDTO> getStrings() {
-        return stringFlux.onBackpressureLatest();
+        return stringFlux;
     }
 
     public void publishString(StringDTO stringDTO) {
@@ -35,7 +35,10 @@ public class PublisherService {
     }
 
     public EmitResult publishComplete() {
-        return stringSink.tryEmitComplete();
+        EmitResult emitResult = stringSink.tryEmitComplete();
+        stringSink = Sinks.many().multicast().onBackpressureBuffer(Queues.XS_BUFFER_SIZE, false);
+        stringFlux = stringSink.asFlux();
+        return emitResult;
     }
 
 }
