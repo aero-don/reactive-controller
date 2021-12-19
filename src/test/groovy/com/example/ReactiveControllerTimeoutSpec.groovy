@@ -67,7 +67,7 @@ class ReactiveControllerTimeoutSpec extends Specification {
         ScheduledFuture<PublisherTimeoutJob> publisherTimeoutJobFuture = (ScheduledFuture<PublisherTimeoutJob>) taskScheduler.scheduleAtFixedRate(
                 Duration.ofMillis(1000L),
                 Duration.ofMillis(2000L),
-                new PublisherTimeoutJob(publisherService));
+                new PublisherTimeoutJob(publisherService))
 
         if (publisherTimeoutJobFuture != null) {
             LOG.info("started PublisherTimeoutJob")

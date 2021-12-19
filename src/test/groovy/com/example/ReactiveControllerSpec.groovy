@@ -51,7 +51,7 @@ class ReactiveControllerSpec extends Specification {
                 new PublisherJob(publisherService))
 
         if (publisherJobFuture != null) {
-            LOG.info("started PublisherJob");
+            LOG.info("started PublisherJob")
         } else {
             LOG.error("publisherJobFuture is null")
         }
