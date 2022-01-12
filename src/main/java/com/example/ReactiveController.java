@@ -17,7 +17,7 @@ public class ReactiveController {
         this.publisherService = publisherService;
     }
 
-    @Get(processes = MediaType.APPLICATION_JSON_STREAM)
+    @Get(produces = MediaType.APPLICATION_JSON_STREAM)
     Flux<StringDTO> getStrings() {
         LOG.info("Received client request for strings");
         return publisherService.getStrings();

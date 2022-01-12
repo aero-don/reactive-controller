@@ -62,7 +62,7 @@ class ReactiveControllerSpec extends Specification {
         stringSource
                 .subscribeOn(Schedulers.fromExecutorService(executorService))
                 .doOnNext(stringDTO -> LOG.info("Received ${stringDTO}", stringDTO))
-                .doOnComplete(() -> LOG.warn("Received onComplete"))
+                .doOnComplete(() -> LOG.info("Received onComplete"))
                 .doOnError(throwable -> LOG.error("Error ${throwable.message}"))
                 .onBackpressureLatest()
                 .subscribe()
